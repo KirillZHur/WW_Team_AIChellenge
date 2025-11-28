@@ -1,0 +1,19 @@
+# PostgreSQL Configuration
+POSTGRES_HOST: localhost
+POSTGRES_DB: correspondence
+POSTGRES_PORT: 5432
+POSTGRES_USER: user
+POSTGRES_PASSWORD: password
+
+# S3 Configuration for MinIO
+S3_BASE_URL: http://localhost:9000
+S3_ACCESS_KEY: minio
+S3_SECRET_KEY: minio123
+S3_BUCKET_NAME: letter-images
+S3_REGION: us-east-1
+S3_FORCE_PATH: true
+
+# JWT configuration
+jwt:
+  secret-base64: "b0BQa2xLdU1vcmVUaGFuMzJCeXRlc0tleUluQmFzZTY0" # 32+ байт в Base64
+  access-ttl-min: 1

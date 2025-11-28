@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: correspondence
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Эммулятор S3 совместимый сервис MinIO
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web UI
+    volumes:
+      - minio_data:/data
+
+  # MinIO Client для создания бакета и установки политики доступа
+  mc:
+    image: minio/mc:latest
+    container_name: minio-mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5 &&
+      mc alias set localminio http://minio:9000 minio minio123 &&
+      mc anonymous set download localminio/letter-images
+      "
+
+volumes:
+  postgres_data:
+  minio_data:
