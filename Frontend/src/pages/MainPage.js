@@ -8,59 +8,56 @@ import {
   Card,
   Button,
   Form,
+  Spinner,
 } from "@themesberg/react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload, faFileAlt, faPlay } from "@fortawesome/free-solid-svg-icons";
 import { Routes } from "../routes";
 
 const STYLE_OPTIONS = [
-  {
-    id: "strict",
-    title: "Строгий официальный",
-    desc: "Для регуляторов и госорганов",
-  },
-  {
-    id: "corporate",
-    title: "Деловой корпоративный",
-    desc: "Для партнёров и корпоративных клиентов",
-  },
-  {
-    id: "client",
-    title: "Клиентоориентированный",
-    desc: "Для клиентов и заявителей",
-  },
-  {
-    id: "short",
-    title: "Краткий информационный",
-    desc: "Для простых запросов и служебных записок",
-  },
+  { id: "strict",     title: "Строгий официальный",     desc: "Для регуляторов и госорганов" },
+  { id: "corporate",  title: "Деловой корпоративный",   desc: "Для партнёров и корпоративных клиентов" },
+  { id: "client",     title: "Клиентоориентированный",  desc: "Для клиентов и заявителей" },
+  { id: "short",      title: "Краткий информационный",  desc: "Для простых запросов и служебных записок" },
 ];
+
+// маппинг стилей UI → значения в API
+const STYLE_TO_API = {
+  strict:    "OFFICIAL_REGULATOR",
+  corporate: "CORPORATE",
+  client:    "CLIENT",
+  short:     "SHORT_INFO",
+};
+
+const API_BASE = "/api/v1";
 
 const MainPage = () => {
   const history = useHistory();
 
-  const [fileName, setFileName] = useState(null);
+  const [file, setFile] = useState(null);      // сам File
+  const [fileName, setFileName] = useState(""); // только имя для UI
   const [title, setTitle] = useState("");
   const [styleId, setStyleId] = useState("strict");
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const applyFile = (file) => {
-    if (!file) return;
-    const name = file.name;
-    setFileName(name);
+  const applyFile = (newFile) => {
+    if (!newFile) return;
+    setFile(newFile);
+    setFileName(newFile.name);
 
     // если название пустое – подставляем имя файла без расширения
     if (!title) {
-      const base = name.replace(/\.[^/.]+$/, "");
+      const base = newFile.name.replace(/\.[^/.]+$/, "");
       setTitle(base);
     }
     setError(null);
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files && e.target.files[0];
-    applyFile(file);
+    const f = e.target.files && e.target.files[0];
+    applyFile(f);
   };
 
   // drag & drop
@@ -77,12 +74,20 @@ const MainPage = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragOver(false);
-    const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    applyFile(file);
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    applyFile(f);
   };
 
-  const handleGenerate = () => {
-    if (!fileName) {
+  const handleClear = () => {
+    setFile(null);
+    setFileName("");
+    setTitle("");
+    setError(null);
+  };
+
+  // --- основное действие: создать письмо + запустить генерацию драфта ---
+  const handleGenerate = async () => {
+    if (!file) {
       setError("Пожалуйста, выберите файл письма.");
       return;
     }
@@ -91,15 +96,58 @@ const MainPage = () => {
       return;
     }
 
-    // позже сюда добавится вызов API + сохранение сессии
-    // сейчас просто переходим на экран ответа
-    history.push(Routes.Second.path);
-  };
-
-  const handleClear = () => {
-    setFileName(null);
-    setTitle("");
     setError(null);
+    setIsSubmitting(true);
+
+    try {
+      // 1) создаём письмо (метаданные + файл)
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("title", title.trim());
+      formData.append("preferredStyle", STYLE_TO_API[styleId]);
+
+      // предполагаем POST /api/v1/letters (201)
+      const letterRes = await fetch(`${API_BASE}/letters`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!letterRes.ok) {
+        throw new Error(`Ошибка создания письма: ${letterRes.status}`);
+      }
+
+      const letter = await letterRes.json();
+      const letterId = letter.id;
+
+      const draftRes = await fetch(`${API_BASE}/letters/${letterId}/drafts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          style: STYLE_TO_API[styleId], // OFFICIAL_REGULATOR и т.п.
+        }),
+      });
+
+      if (!draftRes.ok) {
+        throw new Error(`Ошибка запуска генерации черновика: ${draftRes.status}`);
+      }
+
+      // по твоей спецификации: 202 + { id, status: "GENERATING" }
+      const draft = await draftRes.json();
+      const draftId = draft.id;
+
+      // 3) уходим на экран ответа с параметрами
+      history.push(`${Routes.Second.path}?letterId=${letterId}&draftId=${draftId}`);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      setError(
+        "Не удалось запустить генерацию ответа. Проверьте подключение к серверу и попробуйте ещё раз."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const currentStyle = STYLE_OPTIONS.find((s) => s.id === styleId);
@@ -148,9 +196,7 @@ const MainPage = () => {
                         className="mb-2 text-muted"
                       />
                       <div className="fw-semibold">
-                        {fileName
-                          ? "Файл выбран"
-                          : "Перетащите файл письма сюда"}
+                        {fileName ? "Файл выбран" : "Перетащите файл письма сюда"}
                       </div>
                       <div className="small text-muted">
                         или выберите через диалог ниже
@@ -185,23 +231,44 @@ const MainPage = () => {
                     onChange={(e) => setTitle(e.target.value)}
                   />
                   <Form.Text className="text-muted">
-                    Это имя будет отображаться в списке сессий слева (как в
-                    чате).
+                    Это имя будет отображаться в списке сессий слева (как в чате).
                   </Form.Text>
                 </Form.Group>
 
-                {/* Ошибка валидации */}
+                {/* Ошибка валидации / API */}
                 {error && (
                   <div className="text-danger small mt-2">{error}</div>
                 )}
 
                 {/* Кнопки */}
                 <div className="mt-4 d-flex flex-wrap gap-2">
-                  <Button variant="primary" onClick={handleGenerate}>
-                    <FontAwesomeIcon icon={faPlay} className="me-2" />
-                    Сгенерировать ответ ИИ
+                  <Button
+                    variant="primary"
+                    onClick={handleGenerate}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Spinner
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          className="me-2"
+                        />
+                        Генерируем...
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faPlay} className="me-2" />
+                        Сгенерировать ответ ИИ
+                      </>
+                    )}
                   </Button>
-                  <Button variant="outline-secondary" onClick={handleClear}>
+                  <Button
+                    variant="outline-secondary"
+                    onClick={handleClear}
+                    disabled={isSubmitting}
+                  >
                     Сбросить
                   </Button>
                 </div>
@@ -213,9 +280,7 @@ const MainPage = () => {
           <Col lg={4} className="mb-4">
             <Card className="shadow-sm h-100">
               <Card.Header>
-                <Card.Title className="mb-0">
-                  Стиль ответа ИИ
-                </Card.Title>
+                <Card.Title className="mb-0">Стиль ответа ИИ</Card.Title>
               </Card.Header>
               <Card.Body>
                 <p className="small text-muted">
@@ -233,6 +298,7 @@ const MainPage = () => {
                       size="sm"
                       className="text-start"
                       onClick={() => setStyleId(opt.id)}
+                      disabled={isSubmitting}
                     >
                       <div className="fw-semibold">{opt.title}</div>
                       <div className="small opacity-75">{opt.desc}</div>
@@ -242,8 +308,7 @@ const MainPage = () => {
 
                 {currentStyle && (
                   <div className="mt-3 small text-muted">
-                    Текущий выбор:{" "}
-                    <strong>{currentStyle.title}</strong>.
+                    Текущий выбор: <strong>{currentStyle.title}</strong>.
                   </div>
                 )}
               </Card.Body>
