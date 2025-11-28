@@ -9,6 +9,7 @@ import {
   Badge,
   Form,
   ListGroup,
+  Accordion,
 } from "@themesberg/react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -18,6 +19,7 @@ import {
   faHighlighter,
   faCopy,
   faAlignLeft,
+  faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import { Routes } from "../routes";
@@ -90,18 +92,24 @@ const Second = () => {
 
   const handleStyleChange = (key) => {
     setStyleKey(key);
-    setText(STYLE_PRESETS[key].body); // потом можно сделать «не сбрасывать», если надо
+    setText(STYLE_PRESETS[key].body);
   };
 
   const handleCopy = () => {
-    // пока просто лог, позже подвесим navigator.clipboard.writeText
-    // eslint-disable-next-line no-console
-    console.log("Копирование текста ответа:\n", text);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {
+        // eslint-disable-next-line no-console
+        console.log("Не удалось скопировать в буфер обмена.");
+      });
+    } else {
+      // eslint-disable-next-line no-console
+      console.log("Копирование текста ответа:\n", text);
+    }
   };
 
   return (
     <article>
-      <Container className="px-0">
+      <Container fluid className="px-3 px-md-4">
         {/* Заголовок + «назад» */}
         <Row className="d-flex flex-wrap flex-md-nowrap align-items-center py-4">
           <Col className="d-block mb-3 mb-md-0">
@@ -113,20 +121,20 @@ const Second = () => {
                 size="sm"
               >
                 <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-                К списку писем
+                К генерациям
               </Button>
               <div>
                 <h1 className="h2 mb-1">Сгенерированный ответ</h1>
                 <p className="mb-0 text-muted">
-                  Черновик письма, подготовленный ИИ. Можно сменить стиль, отредактировать и
-                  скопировать в почтовый клиент.
+                  Черновик письма, подготовленный ИИ. Здесь можно сменить стиль,
+                  отредактировать текст и скопировать его в почтовый клиент.
                 </p>
               </div>
             </div>
           </Col>
         </Row>
 
-        {/* Бейджи по письму */}
+        {/* Краткие бейджи о письме (компактно) */}
         <Row className="mb-3">
           <Col>
             <div className="d-flex flex-wrap gap-2">
@@ -135,11 +143,11 @@ const Second = () => {
                 Тип: Регуляторный запрос
               </Badge>
               <Badge bg="secondary">
-                SLA ответа: <strong>24 часа</strong>
+                SLA: <strong>24 часа</strong>
               </Badge>
               <Badge bg="warning" text="dark">
                 <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
-                Требуется согласование ЮЛ / Комплаенс
+                Требуется согласование
               </Badge>
             </div>
           </Col>
@@ -153,7 +161,7 @@ const Second = () => {
                 <div>
                   <Card.Title className="mb-0">
                     <FontAwesomeIcon icon={faAlignLeft} className="me-2" />
-                    Тело письма
+                    Текст ответа
                   </Card.Title>
                   <Card.Subtitle className="text-muted mt-1">
                     Стиль: {currentStyle.label} ({currentStyle.description})
@@ -180,7 +188,7 @@ const Second = () => {
                     onClick={() => setIsEditing((v) => !v)}
                   >
                     <FontAwesomeIcon icon={faHighlighter} className="me-2" />
-                    {isEditing ? "Закончить редактирование" : "Редактировать текст"}
+                    {isEditing ? "Закончить редактирование" : "Редактировать"}
                   </Button>
                   <Button size="sm" variant="outline-secondary" onClick={handleCopy}>
                     <FontAwesomeIcon icon={faCopy} className="me-2" />
@@ -213,106 +221,132 @@ const Second = () => {
             </Card>
           </Col>
 
-          {/* ПРАВАЯ ПОЛОВИНА — пересказ + риски + версии */}
+          {/* ПРАВАЯ ПОЛОВИНА — пересказ, ключевые моменты, автоанализ, версии */}
           <Col lg={4}>
             {/* Краткий пересказ */}
-            <Card className="shadow-sm mb-4">
+            <Card className="shadow-sm mb-3">
               <Card.Header>
-                <Card.Title className="mb-0">Краткий пересказ письма</Card.Title>
+                <Card.Title className="mb-0 d-flex align-items-center">
+                  <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+                  Краткий пересказ
+                </Card.Title>
               </Card.Header>
               <Card.Body>
-                <p className="mb-2">
-                  Система кратко резюмирует смысл подготовленного ответа. Можно использовать
-                  это как ..... для руководителей.
+                <p className="mb-2 small text-muted">
+                  Сжатое описание сути ответа — удобно показывать руководителям.
                 </p>
-                <ul className="mb-0">
-                  <li>
-                    Подтверждаем получение запросa регулятора и выполненный анализ операций.
-                  </li>
-                  <li>Сообщаем об отсутствии нарушений и прикладываем детальный отчёт.</li>
-                  <li>
-                    Готовы предоставить дополнительные пояснения по запросу регулятора в
-                    кратчайшие сроки.
-                  </li>
+                <ul className="mb-0 small">
+                  <li>Подтверждаем получение запроса регулятора.</li>
+                  <li>Сообщаем об анализе операций и отсутствии нарушений.</li>
+                  <li>Прикладываем детальный отчёт и предлагаем доп. пояснения.</li>
                 </ul>
               </Card.Body>
             </Card>
 
-            {/* Риски и акценты */}
-            <Card className="shadow-sm mb-4">
-              <Card.Header>
-                <Card.Title className="mb-0">
-                  Ключевые риски и акценты
-                </Card.Title>
-              </Card.Header>
-              <Card.Body>
-                <ListGroup variant="flush">
-                  <ListGroup.Item className="px-0 d-flex gap-2">
-                    <FontAwesomeIcon
-                      icon={faExclamationTriangle}
-                      className="mt-1 text-warning"
-                    />
-                    <span className="small">
-                      Избегать категоричных формулировок о «полном отсутствии рисков» —
-                      использовать нейтральные формулировки («нарушений не выявлено»).
-                    </span>
-                  </ListGroup.Item>
-                  <ListGroup.Item className="px-0 d-flex gap-2">
-                    <FontAwesomeIcon
-                      icon={faCheckCircle}
-                      className="mt-1 text-success"
-                    />
-                    <span className="small">
-                      Подчеркнуть готовность оперативно предоставить дополнительные
-                      разъяснения и документы.
-                    </span>
-                  </ListGroup.Item>
-                  <ListGroup.Item className="px-0 d-flex gap-2">
-                    <FontAwesomeIcon
-                      icon={faCheckCircle}
-                      className="mt-1 text-success"
-                    />
-                    <span className="small">
-                      Зафиксировать ссылки на приложенные файлы (отчёт, выгрузка, пояснения)
-                      во внутренней системе.
-                    </span>
-                  </ListGroup.Item>
-                </ListGroup>
-              </Card.Body>
-            </Card>
+            {/* Скрываем подробности за аккордеоном, чтобы не засорять UI */}
+            <Accordion defaultActiveKey={null} className="mb-3">
+              <Accordion.Item eventKey="0">
+                <Accordion.Header>Ключевые моменты и риски</Accordion.Header>
+                <Accordion.Body>
+                  <ListGroup variant="flush">
+                    <ListGroup.Item className="px-0 d-flex gap-2">
+                      <FontAwesomeIcon
+                        icon={faExclamationTriangle}
+                        className="mt-1 text-warning"
+                      />
+                      <span className="small">
+                        Избегать формулировок о «полном отсутствии рисков» — лучше
+                        «нарушений не выявлено».
+                      </span>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="px-0 d-flex gap-2">
+                      <FontAwesomeIcon
+                        icon={faCheckCircle}
+                        className="mt-1 text-success"
+                      />
+                      <span className="small">
+                        Подчеркнуть готовность быстро предоставить дополнительные
+                        разъяснения.
+                      </span>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="px-0 d-flex gap-2">
+                      <FontAwesomeIcon
+                        icon={faCheckCircle}
+                        className="mt-1 text-success"
+                      />
+                      <span className="small">
+                        Зафиксировать ссылки на приложенные файлы во внутренних
+                        системах.
+                      </span>
+                    </ListGroup.Item>
+                  </ListGroup>
+                </Accordion.Body>
+              </Accordion.Item>
 
-            {/* Версии ответа */}
-            <Card className="shadow-sm">
-              <Card.Header>
-                <Card.Title className="mb-0">Версии ответа</Card.Title>
-              </Card.Header>
-              <Card.Body className="p-0">
-                <ListGroup variant="flush">
-                  <ListGroup.Item className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <div className="fw-semibold">Черновик №1</div>
-                      <div className="small text-muted">
-                        Строгий официальный, создан 10:15
+              <Accordion.Item eventKey="1">
+                <Accordion.Header>Автоанализ письма</Accordion.Header>
+                <Accordion.Body>
+                  <ListGroup variant="flush" className="small">
+                    <ListGroup.Item className="px-0 d-flex justify-content-between">
+                      <span className="text-muted">Тип обращения</span>
+                      <span className="fw-semibold text-end">
+                        Регуляторный запрос
+                      </span>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="px-0 d-flex justify-content-between">
+                      <span className="text-muted">Рекомендуемый SLA</span>
+                      <span className="fw-semibold">24 часа</span>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="px-0 d-flex justify-content-between">
+                      <span className="text-muted">Уровень риска</span>
+                      <Badge bg="danger" pill>
+                        Высокий
+                      </Badge>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="px-0">
+                      <div className="text-muted mb-1">
+                        Рекомендуемые согласующие
                       </div>
-                    </div>
-                    <Badge bg="secondary" pill>
-                      Текущий
-                    </Badge>
-                  </ListGroup.Item>
-                  <ListGroup.Item className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <div className="fw-semibold">Вариант для клиента</div>
-                      <div className="small text-muted">
-                        Клиентоориентированный, создан 10:12
+                      <ul className="mb-0 ps-3">
+                        <li>Юридический департамент</li>
+                        <li>Комплаенс</li>
+                        <li>Профильный бизнес-блок</li>
+                      </ul>
+                    </ListGroup.Item>
+                  </ListGroup>
+                </Accordion.Body>
+              </Accordion.Item>
+
+              <Accordion.Item eventKey="2">
+                <Accordion.Header>Версии ответа</Accordion.Header>
+                <Accordion.Body className="p-0">
+                  <ListGroup variant="flush">
+                    <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div className="fw-semibold small">Черновик №1</div>
+                        <div className="small text-muted">
+                          Строгий официальный · создан 10:15
+                        </div>
                       </div>
-                    </div>
-                    <Button size="sm" variant="outline-primary">
-                      Открыть
-                    </Button>
-                  </ListGroup.Item>
-                </ListGroup>
-              </Card.Body>
-            </Card>
+                      <Badge bg="secondary" pill>
+                        Текущий
+                      </Badge>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div className="fw-semibold small">Вариант для клиента</div>
+                        <div className="small text-muted">
+                          Клиентоориентированный · создан 10:12
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline-primary">
+                        Открыть
+                      </Button>
+                    </ListGroup.Item>
+                  </ListGroup>
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
           </Col>
         </Row>
       </Container>

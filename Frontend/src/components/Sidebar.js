@@ -4,8 +4,12 @@ import SimpleBar from "simplebar-react";
 import { useLocation, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartPie, faSitemap, faSignOutAlt, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { Nav, Image, Button, Navbar } from "@themesberg/react-bootstrap";
+import {
+  faChartPie,
+  faSignOutAlt,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
+import { Nav, Image, Button, Navbar, Badge } from "@themesberg/react-bootstrap";
 
 import { Routes } from "../routes";
 import ReactHero from "../assets/img/technologies/react-hero-logo.svg";
@@ -19,14 +23,33 @@ export default function Sidebar() {
 
   const onCollapse = () => setShow(!show);
 
-  const NavItem = ({ title, link, icon, image }) => {
+  // временный мок «генераций» — потом сюда можно подставить реальные данные
+  const [threads] = useState([
+    {
+      id: 1,
+      title: "Запрос ЦБ по отчётности Q3",
+      status: "draft",
+    },
+    {
+      id: 2,
+      title: "Жалоба клиента по комиссии",
+      status: "in-progress",
+    },
+    {
+      id: 3,
+      title: "Партнёрское предложение от FinTech",
+      status: "done",
+    },
+  ]);
+
+  const NavItem = ({ title, link, icon, image, badge }) => {
     const navItemClassName = link === pathname ? "active" : "";
     const linkProps = { as: Link, to: link };
 
     return (
       <Nav.Item className={navItemClassName} onClick={() => setShow(false)}>
-        <Nav.Link {...linkProps}>
-          <span>
+        <Nav.Link {...linkProps} title={title}>
+          <span className="d-flex align-items-center">
             {icon && (
               <span className="sidebar-icon">
                 <FontAwesomeIcon icon={icon} />{" "}
@@ -40,11 +63,25 @@ export default function Sidebar() {
                 className="sidebar-icon svg-icon"
               />
             )}
-            <span className="sidebar-text">{title}</span>
+            {/* ВАЖНО: этот span будет обрезаться и показывать title при hover */}
+            <span className="sidebar-text-ellipsis">{title}</span>
           </span>
         </Nav.Link>
       </Nav.Item>
     );
+  };
+
+  const renderStatusBadge = (status) => {
+    if (status === "draft") {
+      return { bg: "secondary", label: "черновик" };
+    }
+    if (status === "in-progress") {
+      return { bg: "warning", text: "dark", label: "в работе" };
+    }
+    if (status === "done") {
+      return { bg: "success", label: "готово" };
+    }
+    return null;
   };
 
   return (
@@ -84,7 +121,6 @@ export default function Sidebar() {
                 </div>
                 <div className="d-block">
                   <h6>Привет, Иван</h6>
-                  {/* пока просто ведём на главную */}
                   <Button
                     as={Link}
                     variant="secondary"
@@ -103,24 +139,33 @@ export default function Sidebar() {
 
             {/* основное меню */}
             <Nav className="flex-column pt-3 pt-md-0">
-              {/* логотип / домик */}
+              {/* логотип / главная */}
               <NavItem
-                title="Главная"
+                title="Новое письмо"
                 link={Routes.Main.path}
                 image={ReactHero}
               />
 
               <NavItem
-                title="Аналитика / загрузка"
-                link={Routes.Main.path}
+                title="Последний ответ"
+                link={Routes.Second.path}
                 icon={faChartPie}
               />
 
-              <NavItem
-                title="Ответ"
-                link={Routes.Second.path}
-                icon={faSitemap}
-              />
+              {/* стек генераций (как чаты) */}
+              <div className="mt-4">
+                <div className="small text-uppercase text-white-50 mb-2">
+                  Ответы
+                </div>
+                {threads.map((t) => (
+                  <NavItem
+                    key={t.id}
+                    title={t.title}
+                    link={Routes.Second.path}
+                    badge={renderStatusBadge(t.status)}
+                  />
+                ))}
+              </div>
             </Nav>
           </div>
         </SimpleBar>

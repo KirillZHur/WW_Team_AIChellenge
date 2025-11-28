@@ -101,3 +101,21 @@
 	}
 }
 
+/* Sidebar: без горизонтального скролла */
+.sidebar {
+  overflow-x: hidden;
+}
+
+/* чтобы внутренний simplebar тоже не пытался скроллить по X */
+.sidebar .simplebar-content {
+  overflow-x: hidden !important;
+}
+
+/* текст пунктов меню – в одну строку с троеточием */
+.sidebar-text-ellipsis {
+  display: inline-block;
+  max-width: 150px; // подгони под свою ширину сайдбара
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
