@@ -24,7 +24,7 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http
-            .csrf { it.disable() } // на jwt наверно сидеть будем? или все таки сессии?
+            .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
@@ -34,7 +34,7 @@ class SecurityConfig(
                         "/actuator/health",
                         "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                         "/api/v1/**",
-                        "/api/auth/v1/registration", "api/auth/v1/login"
+                        "/api/auth/v1/registration", "/api/auth/v1/login"
                     ).permitAll()
 
                     // всё остальное — только аутентифицированным

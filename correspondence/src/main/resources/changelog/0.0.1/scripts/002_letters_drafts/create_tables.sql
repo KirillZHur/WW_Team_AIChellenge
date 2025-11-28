@@ -70,7 +70,7 @@ CREATE INDEX idx_workflow_status ON workflow_tasks(status);
 CREATE TABLE notifications (
                                id              BIGSERIAL PRIMARY KEY,
 
-                               user_id         BIGINT REFERENCES users(id) ON DELETE CASCADE,
+                               user_id         UUID REFERENCES users(id) ON DELETE CASCADE,
                                message         TEXT NOT NULL,
                                is_read         BOOLEAN NOT NULL DEFAULT FALSE,
 

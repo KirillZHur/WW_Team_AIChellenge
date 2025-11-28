@@ -6,6 +6,7 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
@@ -20,6 +21,9 @@ spring:
     multipart:
       max-file-size: 20MB
       max-request-size: 100MB
+  jpa:
+    show-sql: true
+
 
 s3:
   endpoint: ${S3_BASE_URL}
@@ -33,3 +37,7 @@ jwt:
   secret-base64: ${SECRET_BASE64} # 32+ байт в Base64
   access-ttl-min: 15
   issuer: ${spring.application.name}
+
+logging:
+  level:
+    liquibase: DEBUG

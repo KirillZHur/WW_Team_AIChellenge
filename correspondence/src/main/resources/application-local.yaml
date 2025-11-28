@@ -16,4 +16,8 @@ S3_FORCE_PATH: true
 # JWT configuration
 jwt:
   secret-base64: "b0BQa2xLdU1vcmVUaGFuMzJCeXRlc0tleUluQmFzZTY0" # 32+ байт в Base64
-  access-ttl-min: 1
+  access-ttl-min: 600
+
+spring:
+  liquibase:
+    enabled: false

@@ -16,7 +16,7 @@ class RoleCache(
     }
 
     fun reload() {
-        idToCode = roleRepository.findAll().associate { it.id!! to it.name }
+//        idToCode = roleRepository.findAll().associate { it.id!! to it.name }
     }
 
     fun hasRole(userRoleIds: Collection<Long>, required: String): Boolean =
