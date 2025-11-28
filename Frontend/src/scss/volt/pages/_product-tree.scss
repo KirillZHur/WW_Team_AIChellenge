@@ -1,0 +1,117 @@
+/* Отступ от верхней навбар/хедера (подправь при необходимости) */
+:root { --sticky-top: 12px; } /* высота шапки приложения */
+
+/* весь блок ниже <hr> прилипает к верху и занимает всю высоту окна */
+.workzone {
+  position: sticky;
+  top: var(--sticky-top);
+  background: var(--bs-body-bg);
+  z-index: 10;
+}
+
+/* две колонки + высота на весь экран */
+.workzone-body {
+  display: grid;
+  grid-template-columns: 420px 1fr;  /* ширина левой панели */
+  gap: 24px;
+  height: calc(100vh - var(--sticky-top));
+}
+
+/* Одинаковое поведение липких шапок внутри колонок */
+.sticky-box {
+  position: sticky;
+  top: 0;                 /* внутри собственной прокрутки */
+  z-index: 1;
+  background: var(--bs-body-bg);
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+}
+
+/* скроллы колонок */
+.workzone-left,
+.workzone-main {
+  min-height: 0;         /* нужно для корректного calc высоты */
+  display: flex;
+  flex-direction: column;
+}
+
+.left-scroll,
+.main-scroll {
+  overflow: auto;
+  height: 100%;
+}
+
+/* Стили выпадашки поиска — мягче цвета */
+.card .list-group-item.active,
+.list-group-item.active {
+  background-color: rgba(60, 132, 244, .12); /* мягкий синий */
+  color: inherit;
+  border-color: rgba(60, 132, 244, .25);
+}
+
+/* У mark плавный вид */
+mark {
+  background: rgba(255, 208, 0, .45);
+  padding: 0 .15em;
+  border-radius: .2rem;
+}
+
+/* На всякий случай — чтобы выпадашку не перекрывал левый поиск */
+.search-dropdown { z-index: 2200; }
+
+
+/* Комментарий в таблице — чтобы не вылазил за границы */
+/* Общий контейнер строки */
+.head-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;               /* зазор между левой и правой частями */
+}
+
+/* Левая часть: одна строка + троеточие + зазор до правой части */
+.head-comment {
+  flex: 1 1 auto;
+  min-width: 0;            /* обязательно для ellipsis во flex-контейнере */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;     /* одна строка */
+  margin-right: 12px;      /* чтобы не утыкалась в дату */
+  cursor: help;            /* намёк на подсказку */
+}
+
+/* Правая часть: никогда не переносится */
+.head-right {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;               /* между датой и кнопкой */
+}
+
+/* Дата отдельно не обязана, но оставим на всякий */
+.head-date { flex: 0 0 auto; }
+
+/* Чуть прижмём треугольник тултипа (необязательно) */
+.tooltip { margin-bottom: .375rem; }
+
+/* Узкие экраны: разрешаем две строки и перенос правого блока вниз */
+@media (max-width: 576px) {
+  .head-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .head-comment {
+    white-space: normal;           /* больше не одна строка */
+    overflow: hidden;
+    display: -webkit-box;          /* показываем максимум 2 строки */
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-right: 0;
+  }
+  .head-right {
+    align-self: flex-start;
+    white-space: nowrap;           /* дата + кнопка всё ещё вместе */
+    gap: 10px;
+  }
+}

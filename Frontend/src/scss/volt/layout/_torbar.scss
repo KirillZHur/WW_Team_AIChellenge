@@ -1,0 +1,49 @@
+/*
+ * Torbar
+*/
+
+/* на всю ширину без «обрезки» */
+.topbar.full-bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  z-index: 1030;
+}
+
+/* СЛЕВА: группа ссылок должна идти сразу за брендом */
+.topbar .left-nav {
+  display: flex;
+  align-items: center;
+  gap: .25rem;                 /* лёгкий промежуток между пунктами */
+}
+
+/* красивая подсветка и скругления на hover + active */
+.topbar .nav-link,
+.topbar .dropdown-item {
+  border-radius: .5rem;
+}
+
+.topbar .nav-link.active,
+.topbar .dropdown-menu .dropdown-item.active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff !important;
+}
+
+.topbar .nav-link:hover,
+.topbar .dropdown-menu .dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+}
+
+/* расстояние между колоколом и профилем */
+.topbar .right-gap {
+  gap: 1.25rem;
+}
+
+/* аккуратные меню */
+.topbar .dropdown-menu {
+  min-width: 14rem;
+}
+
+/* когда навбар не fixed — контент сам уедет вверх.
+   если где-то остался искусственный отступ — убери его. */

@@ -1,0 +1,155 @@
+/*
+ * Upload New Version 
+*/
+
+.upload-version-dialog {
+  max-width: 88vw !important;
+  width: 88vw;
+  height: 88vh;
+  margin: auto;
+}
+
+.modal-dialog-centered.upload-version-dialog {
+  display: flex;
+  align-items: center;                 /* вертикальный центр */
+  min-height: calc(100% - 2rem);       /* небольшой «воздух» сверху/снизу */
+}
+
+.upload-version-dialog .modal-content {
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-version-dialog .modal-body{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  padding-bottom:0;
+}
+
+/* Единая вертикальная прокрутка контента в body */
+.upload-version-dialog .preview-scroll {
+  height: auto;
+  overflow: visible;
+  flex:1;                 /* тянется до футера */
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+
+/* ====== Таблица diff ====== */
+
+/* фиксированная раскладка + никакого горизонтального скролла */
+.uv-table {
+  table-layout: fixed;
+  width: 100%;
+  margin: 0;
+}
+
+/* переносы в ячейках по умолчанию */
+.uv-table th,
+.uv-table td {
+  white-space: normal;
+  overflow-wrap: anywhere; /* современный перенос длинных путей */
+  word-break: break-word;  /* fallback */
+  vertical-align: middle;
+}
+
+/* «липкая» шапка */
+.uv-head-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* компактные служебные колонки */
+.uv-col-xxs { width: 36px; }
+.uv-col-xs  { width: 110px; }
+.uv-col-s   { width: 120px; }
+
+/* колонка с путём — делаем относительно узкой,
+   но позволяющей переносить длинные строки */
+.uv-col-path { width: 40%; }
+
+/* колонка с комментариями — пусть «ест» свободное место */
+.uv-col-comment { width: 40%; }
+
+/* код с путём — явно разрешаем перенос */
+.uv-path-code {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-size: 0.875rem; /* как .small, но без жесткого nowrap */
+}
+
+/* Контейнер, ограничивающий высоту таблицы, без горизонтального скролла */
+.uv-table-scroll {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  overflow: auto;        /* только вертикаль; горизонталь не нужна из-за переносов */
+  max-height: 42vh;      /* можно подстроить под вкус */
+}
+
+.uv-bulk-scroll {
+  max-height: 28vh;   /* подбери под себя: 22–32vh обычно ок */
+  overflow: auto;     /* вертикальный скролл по мере необходимости */
+  border: 1px solid var(--bs-border-color);
+  border-radius: .5rem;
+}
+
+/* чтобы вложенные элементы не вылезали за границы */
+.uv-bulk-scroll .card {
+  margin: 0;          /* убираем внешние отступы у Card, т.к. контейнер уже с рамкой */
+  border: 0;          /* рамку дал контейнер */
+  border-radius: 0;   /* визуально единый блок */
+}
+
+.uv-drop-root {
+  position: relative;
+  min-height: 100%;
+}
+
+.uv-drop-root.is-active::after {
+  content: "Отпустите файл(ы) чтобы загрузить";
+  position: absolute;
+  inset: 0;
+  border: 2px dashed var(--bs-primary);
+  background: rgba(13,110,253,.06); /* лёгкий блюр/подсветка */
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  color: var(--bs-primary);
+  pointer-events: none; /* не блокируем клики по контенту */
+}
+
+/* На узких экранах прячем колонки «Было/Стало», чтобы не было тесно */
+@media (max-width: 1200px) {
+  .uv-col-s {
+    display: none;
+  }
+}
+
+/* Небольшая косметика для блока «массового комментария» в одну колонку на узких экранах */
+@media (max-width: 992px) {
+  .uv-bulk-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .uv-bulk-row > * {
+    width: 100% !important;
+  }
+}
+
+/* Прогресс-бар — чуть ближе к таблице */
+.uv-progress {
+  margin-top: 0.75rem;
+}
+
+/* Кнопки футера всегда доступны */
+.upload-version-dialog .modal-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--bs-body-bg);
+}

@@ -1,0 +1,37 @@
+/* Контейнер шага select */
+.uv-select-stage{
+  height: 100%; /* подгони под свою модалку */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Зона дропа */
+.uv-dropzone{
+  flex: 1;
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: .5rem;
+  background-color: var(--bs-light, #f8f9fa);
+  position: relative;
+  border: 2px dashed var(--bs-border-color);
+}
+
+/* «бегущий» бордер — можно выключить, если убрать класс .marching у Card */
+.uv-dropzone.marching{ border-color: transparent; }
+.uv-dropzone.marching::before{
+  content:""; position:absolute; inset:0; border-radius:.5rem; padding:2px; pointer-events:none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  background:
+    repeating-linear-gradient(90deg,var(--bs-border-color) 0 8px,transparent 8px 16px) top/100% 2px no-repeat,
+    repeating-linear-gradient( 0deg,var(--bs-border-color) 0 8px,transparent 8px 16px) left/2px 100% no-repeat,
+    repeating-linear-gradient(90deg,var(--bs-border-color) 0 8px,transparent 8px 16px) bottom/100% 2px no-repeat,
+    repeating-linear-gradient( 0deg,var(--bs-border-color) 0 8px,transparent 8px 16px) right/2px 100% no-repeat;
+  animation: uv-ants 8s linear infinite;
+}
+@keyframes uv-ants{
+  from { background-position: 0 0, 0 0, 0 100%, 100% 0; }
+  to   { background-position: 16px 0, 0 16px, -16px 100%, 100% -16px; }
+}
