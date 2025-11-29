@@ -22,3 +22,7 @@ pnpm-debug.log*
 .env.development.local
 .env.production.local
 .env.test.local
+
+# прочее
+rubert-letter-classifier-final/
+index.lock
