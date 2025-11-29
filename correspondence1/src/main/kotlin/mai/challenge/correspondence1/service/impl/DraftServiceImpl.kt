@@ -1,5 +1,7 @@
 package mai.challenge.correspondence.service.impl
 
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import mai.challenge.correspondence.repository.LetterRepository
 import mai.challenge.correspondence.repository.DraftRepository
 import mai.challenge.correspondence.config.client.LlmClient
@@ -12,6 +14,7 @@ import mai.challenge.correspondence.model.DraftSummaryDto
 import mai.challenge.correspondence.model.GetDraftsResponse
 import mai.challenge.correspondence.service.WorkflowService
 import mai.challenge.correspondence.service.DraftService
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,23 +24,27 @@ import java.time.OffsetDateTime
 class DraftServiceImpl(
     private val letterRepository: LetterRepository,
     private val draftRepository: DraftRepository,
-    private val llmClient: LlmClient,
+    private val objectMapper: ObjectMapper,
     private val workflowService: WorkflowService,
     private val mailClient: MailClient
 ) : DraftService {
+
+    private val LOGGER = LoggerFactory.getLogger(LetterServiceImpl::class.java)
 
     @Transactional(readOnly = true)
     override fun getDraftsForLetter(letterId: Long): GetDraftsResponse {
         val letter = letterRepository.findById(letterId).orElseThrow {
             BackendException(statusCode = HttpStatus.NOT_FOUND, "Letter $letterId not found")
         }
+
         return GetDraftsResponse(
             type = letter.type,
             title = letter.title,
             summary = letter.summary,
             approvers = letter.approvers?.map{ it.name }  ?: emptyList(),
             drafts = letter.drafts?.map { DraftSummaryDto(id = it.id, style = it.style, text = it.text) } ?: emptyList(),
-            quickly = letter.quickly
+            quickly = letter.quickly,
+            facts = convertToMap(letter.facts)
         )
     }
 
@@ -102,4 +109,12 @@ class DraftServiceImpl(
         return draftRepository.save(draft)
     }
 
+    private fun convertToMap(text: String?): Map<String, Any>? {
+        return try {
+            objectMapper.readValue(text, Map::class.java) as Map<String, Any>
+        } catch (e: Exception) {
+            LOGGER.error("Error convernt to map", e)
+            null
+        }
+    }
 }

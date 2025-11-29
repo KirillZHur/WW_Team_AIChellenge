@@ -43,3 +43,6 @@ jwt:
 logging:
   level:
     liquibase: DEBUG
+
+neural:
+  base-url: ${neural_base_url}

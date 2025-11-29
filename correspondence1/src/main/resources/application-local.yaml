@@ -17,3 +17,5 @@ S3_FORCE_PATH: true
 jwt:
   secret-base64: "b0BQa2xLdU1vcmVUaGFuMzJCeXRlc0tleUluQmFzZTY0" # 32+ байт в Base64
   access-ttl-min: 600
+
+neural_base_url: http://localhost:8001

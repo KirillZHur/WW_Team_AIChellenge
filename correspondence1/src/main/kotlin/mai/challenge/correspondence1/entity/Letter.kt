@@ -61,7 +61,10 @@ data class Letter(
         joinColumns = [JoinColumn(name = "letter_id")],
         inverseJoinColumns = [JoinColumn(name = "approver_id")]
     )
-    val approvers: List<Approver> = listOf()
+    val approvers: List<Approver> = listOf(),
+
+    @Column
+    val facts: String? = null
 )
 
 enum class LetterStatus {

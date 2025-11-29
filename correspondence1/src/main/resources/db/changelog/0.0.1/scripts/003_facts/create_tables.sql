@@ -1,0 +1,1 @@
+ALTER TABLE letters add column facts text;

@@ -17,7 +17,8 @@ data class GetDraftsResponse(
     val type: String? = null,
     val quickly: Boolean = false,
     val summary: String? = null,
-    val approvers: List<String>? = listOf()
+    val approvers: List<String>? = listOf(),
+    val facts: Map<String, Any>? = mapOf()
 )
 
 data class DraftDetailsDto(
