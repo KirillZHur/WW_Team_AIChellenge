@@ -1,13 +1,14 @@
-from typing import Literal, Dict, List, Any
+from typing import Dict, List, Any
 
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 
 from pipeline import process_email, process_email_from_pdf
 
+
 class AnalyzeRequest(BaseModel):
-    text: str
-    style: Literal["official", "corporate", "client"] = "official"
+    text: str  # style убрали – бэкенд сам генерит все три варианта
+
 
 class Draft(BaseModel):
     style: str
@@ -17,7 +18,8 @@ class AnalyzeResponse(BaseModel):
     summary: str
     letter_type: str
     facts: Dict[str, Any]
-    drafts: List[Draft]
+    drafts: List[Draft]  # три текста: [official, corporate, client]
+
 
 app = FastAPI(
     title="Email Processing API",
@@ -25,16 +27,16 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
-    result = process_email(req.text, style=req.style)
-
+    result = process_email(req.text)
     return AnalyzeResponse(**result)
+
 
 @app.post("/analyze_pdf", response_model=AnalyzeResponse)
 async def analyze_pdf(
     file: UploadFile = File(...),
-    style: Literal["official", "corporate", "client"] = "official"
 ):
     import tempfile
 
@@ -43,9 +45,10 @@ async def analyze_pdf(
     temp_file.write(await file.read())
     temp_file.close()
 
-    result = process_email_from_pdf(temp_file.name, style=style)
+    result = process_email_from_pdf(temp_file.name)
 
     return AnalyzeResponse(**result)
+
 
 if __name__ == "__main__":
     import uvicorn

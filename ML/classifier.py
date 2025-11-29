@@ -1,10 +1,12 @@
+from pathlib import Path
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-MODEL_PATH = "./rubert-letter-classifier-final"
-BASE_MODEL = "DeepPavlov/rubert-base-cased"
+BASE_MODEL = "DeepPavlov/rubert-base-cased" 
+
+MODEL_PATH = str(Path(__file__).parent / "rubert-letter-classifier-final")
 
 ID2LABEL = {
     0: "Запрос информации/документов",

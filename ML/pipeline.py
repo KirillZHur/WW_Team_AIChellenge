@@ -24,6 +24,10 @@ def process_email(email_text: str, style: str = "official") -> Dict[str, Any]:
         history=None,
     )
 
+    # drafts = [
+    #     {"style": style_name, "text": reply_text}
+    #     for style_name, reply_text in replies.items()
+    # ]
     drafts = [
         {"style": style_name, "text": reply_text}
         for style_name, reply_text in replies.items()
