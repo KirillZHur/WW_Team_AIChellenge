@@ -52,8 +52,9 @@ docker compose up -d
 ```
 
 ## 3) Открыть в браузере
-
-`http://localhost:3000`
+```
+http://localhost:3000
+```
 
 ---
 
