@@ -78,7 +78,7 @@ multipart/form-data
 - создаёт запись в БД
 
 ### 3) AI-модель создает черновики
-Backend вызывает YandexGPT:
+Backend вызывает модели:
 
 ```
 POST /letters/{id}/drafts
