@@ -33,7 +33,7 @@ correspondence/
 | Компонент         | Технология                     | Описание |
 |------------------|--------------------------------|----------|
 | Backend (API)    | Spring Boot 3 (Kotlin)         | Обработка писем, генерация черновиков, хранение метаданных, JWT |
-| AI Engine        | Transformers (HF), PyTorch     | Локальный inference YandexGPT-5 Lite 8B |
+| AI Engine        | Transformers, PyTorch     | ruBERT + YandexGPT|
 | DB               | PostgreSQL                     | Хранение писем, черновиков и истории |
 | Frontend         | React                          | UI для сотрудников банка |
 
@@ -43,8 +43,7 @@ correspondence/
 
 ## 1) Клонировать репозиторий
 ```bash
-git clone <repo>
-cd correspondence
+git clone git@github.com:KirillZHur/WW_Team_AIChellenge.git
 ```
 
 ## 2) Запуск всей системы
@@ -52,22 +51,9 @@ cd correspondence
 docker compose up -d
 ```
 
-Поднимутся:
-
-- PostgreSQL
-- backend (Spring Boot)
-- локальная AI-модель
-- frontend (React)
-
-Первый запуск AI-сервиса может занять 5–10 минут.
-
 ## 3) Открыть в браузере
 
-| Сервис | URL |
-|--------|------|
-| Frontend (UI) | http://localhost:3000 |
-| Backend| http://localhost:8080 |
-| ML | http://localhost:8000 |
+`http://localhost:3000`
 
 ---
 
@@ -81,18 +67,17 @@ multipart/form-data
 ```
 
 Содержимое:
-- файл (pdf/docx/txt)
+- файл (pdf/txt)
 - название генерации
 
 ### 2) Backend принимает письмо
 - сохраняет файл в БД
 - извлекает текст
-- классифицирует письмо (ruBERT)
-- отправляет запрос на извлечение признаков (YandexGPT)
+- отправляет запросы к моделям
 - создаёт запись в БД
 
 ### 3) AI-модель создает черновики
-Backend вызывает локальный YandexGPT:
+Backend вызывает YandexGPT:
 
 ```
 POST /letters/{id}/drafts
@@ -114,7 +99,7 @@ POST /letters/{id}/drafts
 
 ---
 
-# 🧑‍💻 Запуск Backend вручную (без Docker)
+# Запуск Backend вручную (без Docker)
 
 ### dev-профиль
 ```bash
@@ -165,24 +150,14 @@ npm run build
 ### AI
 - PyTorch
 - HuggingFace Transformers
-- YandexGPT Lite 8B Instruct
+- YandexGPT
+- ruBERT
 
 ### Frontend
 - React
 - React Bootstrap
 - Axios
 - SimpleBar
-
----
-
-# 📞 Поддержка
-Если возникли проблемы — проверить:
-
-```
-docker compose logs backend
-docker compose logs ai
-docker compose logs frontend
-```
 
 ---
 
