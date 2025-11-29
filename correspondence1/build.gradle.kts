@@ -16,7 +16,7 @@ description = "correspondence"
 val jjwtVersion = "0.12.5"
 val openApiVersion = "2.2.36"
 val tinkaVersion = "2.9.2"
-val cloudVersion = "2024.0.0"
+val cloudVersion = "2023.0.3"
 
 java {
     toolchain {
