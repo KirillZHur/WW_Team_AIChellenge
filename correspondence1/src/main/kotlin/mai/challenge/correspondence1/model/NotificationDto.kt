@@ -10,9 +10,3 @@ data class NotificationDto(
     val createdAt: OffsetDateTime
 )
 
-fun Notification.toDto() = NotificationDto(
-    id = id,
-    message = message,
-    isRead = isRead,
-    createdAt = createdAt
-)
