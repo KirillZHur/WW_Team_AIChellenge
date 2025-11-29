@@ -9,11 +9,13 @@ import mai.challenge.correspondence.mapper.UserMapper
 import mai.challenge.correspondence.service.UserService
 import mai.challenge.correspondence.service.AuthService
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.RestController
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
 @RestController
+@CrossOrigin("localhost:3000")
 class AuthController(
     private val userService: UserService,
     private val userMapper: UserMapper,

@@ -10,6 +10,9 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import javax.crypto.SecretKey
 
 @Configuration
@@ -17,6 +20,7 @@ import javax.crypto.SecretKey
 class SecurityConfig(
     private val secretKey: SecretKey,
 ) {
+
     @Bean
     fun passwordEncoder(): PasswordEncoder =
         PasswordEncoderFactories.createDelegatingPasswordEncoder()
@@ -25,34 +29,47 @@ class SecurityConfig(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http
             .csrf { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .cors { } // ← enable CORS
+            .sessionManagement {
+                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
             .authorizeHttpRequests { auth ->
                 auth
-                    // публичные эндпоинты
                     .requestMatchers(
                         "/public/**",
                         "/actuator/health",
-                        "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
                         "/api/v1/**",
-                        "/api/auth/v1/registration", "/api/auth/v1/login"
+                        "/api/auth/v1/registration",
+                        "/api/auth/v1/login"
                     ).permitAll()
-
-                    // всё остальное — только аутентифицированным
                     .anyRequest().authenticated()
             }
             .oauth2ResourceServer { rs ->
-                rs.jwt { jwt ->
-                    jwt.decoder(jwtDecoder())
-                }
+                rs.jwt { jwt -> jwt.decoder(jwtDecoder()) }
             }
             .build()
 
     @Bean
     fun jwtDecoder(): NimbusJwtDecoder =
         NimbusJwtDecoder.withSecretKey(secretKey)
-            .macAlgorithm(MacAlgorithm.HS256) // если токены подписаны HS256
+            .macAlgorithm(MacAlgorithm.HS256)
             .build()
 
+    // --- CORS CONFIGURATION ---
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val config = CorsConfiguration().apply {
+            allowedOrigins = listOf("*")   // ← ⭐ Разрешить все домены
+            allowedMethods = listOf("*")   // GET, POST, PUT, DELETE, OPTIONS...
+            allowedHeaders = listOf("*")   // все заголовки
+            allowCredentials = false       // обязательное ограничение при "*"
+        }
 
-
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", config)
+        return source
+    }
 }
