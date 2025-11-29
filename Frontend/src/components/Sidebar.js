@@ -1,5 +1,4 @@
-// src/components/Sidebar.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SimpleBar from "simplebar-react";
 import { useLocation, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
@@ -9,11 +8,12 @@ import {
   faSignOutAlt,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
-import { Nav, Image, Button, Navbar, Badge } from "@themesberg/react-bootstrap";
+import { Nav, Image, Button, Navbar } from "@themesberg/react-bootstrap";
 
 import { Routes } from "../routes";
 import ReactHero from "../assets/img/technologies/react-hero-logo.svg";
 import ProfilePicture from "../assets/img/team/profile-picture-3.jpg";
+import api from "../api";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -21,28 +21,35 @@ export default function Sidebar() {
   const [show, setShow] = useState(false);
   const showClass = show ? "show" : "";
 
+  const [threads, setThreads] = useState([]); // история писем { id, title }
+
   const onCollapse = () => setShow(!show);
 
-  // временный мок «генераций» — потом сюда можно подставить реальные данные
-  const [threads] = useState([
-    {
-      id: 1,
-      title: "Запрос ЦБ по отчётности Q3",
-      status: "draft",
-    },
-    {
-      id: 2,
-      title: "Жалоба клиента по комиссии",
-      status: "in-progress",
-    },
-    {
-      id: 3,
-      title: "Партнёрское предложение от FinTech",
-      status: "done",
-    },
-  ]);
+  // загрузка истории писем для списка "Ответы"
+  useEffect(() => {
+    let cancelled = false;
 
-  const NavItem = ({ title, link, icon, image, badge }) => {
+    const loadHistory = async () => {
+      try {
+        const res = await api.get("/letters"); // вернуть history
+        if (cancelled) return;
+
+        // предполагаем, что бэк возвращает массив объектов { id, title }
+        setThreads(res.data || []);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("Не удалось загрузить историю писем", e);
+      }
+    };
+
+    loadHistory();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const NavItem = ({ title, link, icon, image }) => {
     const navItemClassName = link === pathname ? "active" : "";
     const linkProps = { as: Link, to: link };
 
@@ -63,25 +70,12 @@ export default function Sidebar() {
                 className="sidebar-icon svg-icon"
               />
             )}
-            {/* ВАЖНО: этот span будет обрезаться и показывать title при hover */}
+            {/* обрезаем текст, полный заголовок в title */}
             <span className="sidebar-text-ellipsis">{title}</span>
           </span>
         </Nav.Link>
       </Nav.Item>
     );
-  };
-
-  const renderStatusBadge = (status) => {
-    if (status === "draft") {
-      return { bg: "secondary", label: "черновик" };
-    }
-    if (status === "in-progress") {
-      return { bg: "warning", text: "dark", label: "в работе" };
-    }
-    if (status === "done") {
-      return { bg: "success", label: "готово" };
-    }
-    return null;
   };
 
   return (
@@ -139,7 +133,7 @@ export default function Sidebar() {
 
             {/* основное меню */}
             <Nav className="flex-column pt-3 pt-md-0">
-              {/* логотип / главная */}
+              {/* логотип / главное действие */}
               <NavItem
                 title="Новое письмо"
                 link={Routes.Main.path}
@@ -160,9 +154,8 @@ export default function Sidebar() {
                 {threads.map((t) => (
                   <NavItem
                     key={t.id}
-                    title={t.title}
-                    link={Routes.Second.path}
-                    badge={renderStatusBadge(t.status)}
+                    title={t.title || `Письмо #${t.id}`}
+                    link={`${Routes.Second.path}?letterId=${t.id}`}
                   />
                 ))}
               </div>

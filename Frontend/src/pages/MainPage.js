@@ -13,29 +13,44 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload, faFileAlt, faPlay } from "@fortawesome/free-solid-svg-icons";
 import { Routes } from "../routes";
+import api from "../api";
 
 const STYLE_OPTIONS = [
-  { id: "strict",     title: "Строгий официальный",     desc: "Для регуляторов и госорганов" },
-  { id: "corporate",  title: "Деловой корпоративный",   desc: "Для партнёров и корпоративных клиентов" },
-  { id: "client",     title: "Клиентоориентированный",  desc: "Для клиентов и заявителей" },
-  { id: "short",      title: "Краткий информационный",  desc: "Для простых запросов и служебных записок" },
+  {
+    id: "strict",
+    title: "Строгий официальный",
+    desc: "Для регуляторов и госорганов",
+  },
+  {
+    id: "corporate",
+    title: "Деловой корпоративный",
+    desc: "Для партнёров и корпоративных клиентов",
+  },
+  {
+    id: "client",
+    title: "Клиентоориентированный",
+    desc: "Для клиентов и заявителей",
+  },
+  {
+    id: "short",
+    title: "Краткий информационный",
+    desc: "Для простых запросов и служебных записок",
+  },
 ];
 
 // маппинг стилей UI → значения в API
 const STYLE_TO_API = {
-  strict:    "OFFICIAL_REGULATOR",
+  strict: "OFFICIAL_REGULATOR",
   corporate: "CORPORATE",
-  client:    "CLIENT",
-  short:     "SHORT_INFO",
+  client: "CLIENT",
+  short: "SHORT_INFO",
 };
-
-const API_BASE = "/api/v1";
 
 const MainPage = () => {
   const history = useHistory();
 
-  const [file, setFile] = useState(null);      // сам File
-  const [fileName, setFileName] = useState(""); // только имя для UI
+  const [file, setFile] = useState(null); // сам File
+  const [fileName, setFileName] = useState(""); // имя файла для UI
   const [title, setTitle] = useState("");
   const [styleId, setStyleId] = useState("strict");
   const [isDragOver, setIsDragOver] = useState(false);
@@ -85,7 +100,7 @@ const MainPage = () => {
     setError(null);
   };
 
-  // --- основное действие: создать письмо + запустить генерацию драфта ---
+  // --- основное действие: создать письмо (генерация черновика запускается на бэке) ---
   const handleGenerate = async () => {
     if (!file) {
       setError("Пожалуйста, выберите файл письма.");
@@ -100,50 +115,30 @@ const MainPage = () => {
     setIsSubmitting(true);
 
     try {
-      // 1) создаём письмо (метаданные + файл)
+      // multipart/form-data
       const formData = new FormData();
       formData.append("file", file);
       formData.append("title", title.trim());
       formData.append("preferredStyle", STYLE_TO_API[styleId]);
 
-      // предполагаем POST /api/v1/letters (201)
-      const letterRes = await fetch(`${API_BASE}/letters`, {
-        method: "POST",
-        body: formData,
+      // POST /api/v1/letters
+      const res = await api.post("/letter", formData, {
+        headers: { 
+          "Content-Type": "multipart/form-data" },
       });
 
-      if (!letterRes.ok) {
-        throw new Error(`Ошибка создания письма: ${letterRes.status}`);
+      const letterId = res.data.id;
+      if (!letterId) {
+        throw new Error("В ответе бэкенда отсутствует id письма");
       }
 
-      const letter = await letterRes.json();
-      const letterId = letter.id;
-
-      const draftRes = await fetch(`${API_BASE}/letters/${letterId}/drafts`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          style: STYLE_TO_API[styleId], // OFFICIAL_REGULATOR и т.п.
-        }),
-      });
-
-      if (!draftRes.ok) {
-        throw new Error(`Ошибка запуска генерации черновика: ${draftRes.status}`);
-      }
-
-      // по твоей спецификации: 202 + { id, status: "GENERATING" }
-      const draft = await draftRes.json();
-      const draftId = draft.id;
-
-      // 3) уходим на экран ответа с параметрами
-      history.push(`${Routes.Second.path}?letterId=${letterId}&draftId=${draftId}`);
+      // переходим на экран ответа, Second сам сделает GET /letters/{id}/drafts
+      history.push(`${Routes.Second.path}?letterId=${letterId}`);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
       setError(
-        "Не удалось запустить генерацию ответа. Проверьте подключение к серверу и попробуйте ещё раз."
+        "Не удалось создать письмо и запустить генерацию. Проверьте подключение к серверу и попробуйте ещё раз."
       );
     } finally {
       setIsSubmitting(false);
@@ -236,9 +231,7 @@ const MainPage = () => {
                 </Form.Group>
 
                 {/* Ошибка валидации / API */}
-                {error && (
-                  <div className="text-danger small mt-2">{error}</div>
-                )}
+                {error && <div className="text-danger small mt-2">{error}</div>}
 
                 {/* Кнопки */}
                 <div className="mt-4 d-flex flex-wrap gap-2">
