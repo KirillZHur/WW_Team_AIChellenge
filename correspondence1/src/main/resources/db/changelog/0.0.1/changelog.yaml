@@ -17,3 +17,12 @@ databaseChangeLog:
             path: scripts/002_letters_drafts/create_tables.sql
             splitStatements: true
             stripComments: true
+  - changeSet:
+      id: 003
+      author: Dazz1ee
+      changes:
+        - sqlFile:
+            relativeToChangelogFile: true
+            path: scripts/003_facts/create_tables.sql
+            splitStatements: true
+            stripComments: true

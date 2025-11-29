@@ -4,7 +4,7 @@ import mai.challenge.correspondence.entity.DraftStyle
 
 object DraftStyleMapper {
     fun fromApi(value: String): DraftStyle =
-        when (value.uppercase()) {
+        when (value.lowercase()) {
             "official" -> DraftStyle.OFFICIAL_REGULATOR
             "corporate" -> DraftStyle.FORMAL_BUSINESS
             "client" -> DraftStyle.CLIENT_FRIENDLY
