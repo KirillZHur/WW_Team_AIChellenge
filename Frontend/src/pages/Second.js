@@ -53,13 +53,23 @@ const API_STYLE_TO_KEY = {
 };
 
 const Second = () => {
-  const { search } = useLocation();
-  const params = useMemo(() => new URLSearchParams(search), [search]);
+  const location = useLocation();
+  const params = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
 
   const letterId = params.get("letterId");
   const initialDraftId = params.get("draftId");
+  const styleFromUrl = params.get("style"); // strict / corporate / client / short
 
-  const [styleKey, setStyleKey] = useState("strict");
+  const [styleKey, setStyleKey] = useState(() => {
+    if (styleFromUrl && STYLE_PRESETS[styleFromUrl]) {
+      return styleFromUrl;
+    }
+    return "strict";
+  });
+
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState("");
 
@@ -136,8 +146,13 @@ const Second = () => {
         setCurrentDraftId(chosenDraft.id);
         setText(chosenDraft.text || "");
 
-        const mappedStyle =
-          API_STYLE_TO_KEY[chosenDraft.style] || "strict";
+        // стиль по умолчанию:
+        // - если есть style в query (strict/corporate/client/short) — используем его
+        // - иначе маппим из DraftStyle
+        let mappedStyle = API_STYLE_TO_KEY[chosenDraft.style] || "strict";
+        if (styleFromUrl && STYLE_PRESETS[styleFromUrl]) {
+          mappedStyle = styleFromUrl;
+        }
         setStyleKey(mappedStyle);
 
         setLoading(false);
@@ -158,12 +173,11 @@ const Second = () => {
     return () => {
       cancelled = true;
     };
-  }, [letterId, initialDraftId]);
+  }, [letterId, initialDraftId, styleFromUrl]);
 
   // смена стиля — только на уровне UI (текст не перегенерируем)
   const handleStyleChange = (key) => {
     setStyleKey(key);
-    // текст берём текущий, не меняем
   };
 
   const handleCopy = () => {
@@ -196,9 +210,7 @@ const Second = () => {
 
         // локально обновляем выбранный драфт
         setDrafts((prev) =>
-          prev.map((d) =>
-            d.id === currentDraftId ? { ...d, text } : d
-          )
+          prev.map((d) => (d.id === currentDraftId ? { ...d, text } : d))
         );
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -324,7 +336,9 @@ const Second = () => {
                         disabled={saving}
                       >
                         <option value="strict">Строгий официальный</option>
-                        <option value="corporate">Деловой корпоративный</option>
+                        <option value="corporate">
+                          Деловой корпоративный
+                        </option>
                         <option value="client">Клиентоориентированный</option>
                         <option value="short">Краткий информационный</option>
                       </Form.Select>

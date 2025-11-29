@@ -119,3 +119,36 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ————————————————
+   Фирменный фон PSB (Pantone Blue 072C)
+   RGB 043 / 44 / 132 → #2B2C84
+——————————————— */
+.sidebar,
+.navbar-theme-primary {
+  background-color: #2B2C84 !important;
+}
+
+/* ————————————————
+   Логотип в самом верху Sidebar
+——————————————— */
+.sidebar-logo-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 6px 0; /* уменьшенные отступы сверху/снизу */
+  margin-bottom: 0;
+}
+
+.sidebar-logo {
+  height: 70px;     /* увеличили */
+  width: auto;
+  display: block;
+}
+
+/* ————————————————
+   Иконка конверта возле "Новое письмо"
+——————————————— */
+.sidebar-icon {
+  margin-right: 10px;
+  font-size: 1.2rem;
+}

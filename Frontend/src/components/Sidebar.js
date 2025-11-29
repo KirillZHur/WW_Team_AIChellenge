@@ -4,6 +4,7 @@ import { useLocation, Link } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faEnvelope,
   faChartPie,
   faSignOutAlt,
   faTimes,
@@ -11,7 +12,8 @@ import {
 import { Nav, Image, Button, Navbar } from "@themesberg/react-bootstrap";
 
 import { Routes } from "../routes";
-import ReactHero from "../assets/img/technologies/react-hero-logo.svg";
+import LogoPsb from "../assets/img/logo-psb.png"; // прозрачный логотип
+
 import ProfilePicture from "../assets/img/team/profile-picture-3.jpg";
 import api from "../api";
 
@@ -25,29 +27,23 @@ export default function Sidebar() {
 
   const onCollapse = () => setShow(!show);
 
-  // загрузка истории писем для списка "Ответы"
+  // История писем (обновляется при переходах)
   useEffect(() => {
     let cancelled = false;
 
     const loadHistory = async () => {
       try {
-        const res = await api.get("/letters"); // вернуть history
-        if (cancelled) return;
-
-        // предполагаем, что бэк возвращает массив объектов { id, title }
-        setThreads(res.data || []);
+        const res = await api.get("/letters");
+        if (!cancelled) setThreads(res.data || []);
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.error("Не удалось загрузить историю писем", e);
       }
     };
 
     loadHistory();
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    return () => (cancelled = true);
+  }, [pathname]);
 
   const NavItem = ({ title, link, icon, image }) => {
     const navItemClassName = link === pathname ? "active" : "";
@@ -59,18 +55,17 @@ export default function Sidebar() {
           <span className="d-flex align-items-center">
             {icon && (
               <span className="sidebar-icon">
-                <FontAwesomeIcon icon={icon} />{" "}
+                <FontAwesomeIcon icon={icon} />
               </span>
             )}
             {image && (
               <Image
                 src={image}
-                width={20}
-                height={20}
+                width={22}
+                height={22}
                 className="sidebar-icon svg-icon"
               />
             )}
-            {/* обрезаем текст, полный заголовок в title */}
             <span className="sidebar-text-ellipsis">{title}</span>
           </span>
         </Nav.Link>
@@ -80,21 +75,17 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* мобильный топ-бар для открытия сайдбара */}
+      {/* мобильный топ-бар */}
       <Navbar
         expand={false}
         collapseOnSelect
         variant="dark"
         className="navbar-theme-primary px-4 d-md-none"
       >
-        <Navbar.Brand className="me-lg-5" as={Link} to={Routes.Main.path}>
-          <Image src={ReactHero} className="navbar-brand-light" />
+        <Navbar.Brand className="me-lg-5">
+          <Image src={LogoPsb} width={34} alt="PSB logo" />
         </Navbar.Brand>
-        <Navbar.Toggle
-          as={Button}
-          aria-controls="main-navbar"
-          onClick={onCollapse}
-        >
+        <Navbar.Toggle as={Button} onClick={onCollapse}>
           <span className="navbar-toggler-icon" />
         </Navbar.Toggle>
       </Navbar>
@@ -104,8 +95,19 @@ export default function Sidebar() {
           className={`collapse ${showClass} sidebar d-md-block bg-primary text-white`}
         >
           <div className="sidebar-inner px-4 pt-3">
+
+            {/* ЛОГОТИП – добавлен сверху */}
+            <div className="d-flex justify-content-center mb-4 mt-2">
+              <Image
+                src={LogoPsb}
+                width={70}
+                alt="PSB logo"
+                style={{ pointerEvents: "none" }} // не кнопка
+              />
+            </div>
+
             {/* карточка пользователя на мобиле */}
-            <div className="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
+            <div className="user-card d-flex d-md-none align-items-center justify-content-between pb-4">
               <div className="d-flex align-items-center">
                 <div className="user-avatar lg-avatar me-4">
                   <Image
@@ -133,11 +135,11 @@ export default function Sidebar() {
 
             {/* основное меню */}
             <Nav className="flex-column pt-3 pt-md-0">
-              {/* логотип / главное действие */}
+              {/* Новое письмо — теперь с иконкой конверта */}
               <NavItem
                 title="Новое письмо"
                 link={Routes.Main.path}
-                image={ReactHero}
+                icon={faEnvelope}
               />
 
               <NavItem
@@ -146,11 +148,12 @@ export default function Sidebar() {
                 icon={faChartPie}
               />
 
-              {/* стек генераций (как чаты) */}
+              {/* История */}
               <div className="mt-4">
                 <div className="small text-uppercase text-white-50 mb-2">
                   Ответы
                 </div>
+
                 {threads.map((t) => (
                   <NavItem
                     key={t.id}

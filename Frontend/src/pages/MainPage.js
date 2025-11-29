@@ -1,5 +1,4 @@
-// src/pages/MainPage.js
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import {
   Container,
@@ -57,6 +56,9 @@ const MainPage = () => {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ref для очистки file input
+  const fileInputRef = useRef(null);
+
   const applyFile = (newFile) => {
     if (!newFile) return;
     setFile(newFile);
@@ -98,6 +100,12 @@ const MainPage = () => {
     setFileName("");
     setTitle("");
     setError(null);
+    setStyleId("strict");
+
+    // сбрасываем значение у input type="file"
+    if (fileInputRef.current) {
+      fileInputRef.current.value = null;
+    }
   };
 
   // --- основное действие: создать письмо (генерация черновика запускается на бэке) ---
@@ -121,10 +129,11 @@ const MainPage = () => {
       formData.append("title", title.trim());
       formData.append("preferredStyle", STYLE_TO_API[styleId]);
 
-      // POST /api/v1/letters
+      // POST /api/v1/letter
       const res = await api.post("/letter", formData, {
-        headers: { 
-          "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       const letterId = res.data.id;
@@ -132,8 +141,11 @@ const MainPage = () => {
         throw new Error("В ответе бэкенда отсутствует id письма");
       }
 
-      // переходим на экран ответа, Second сам сделает GET /letters/{id}/drafts
-      history.push(`${Routes.Second.path}?letterId=${letterId}`);
+      // на Second передаём и letterId, и выбранный стиль,
+      // чтобы комбобокс сразу показал правильное значение
+      history.push(
+        `${Routes.Second.path}?letterId=${letterId}&style=${styleId}`
+      );
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e);
@@ -200,6 +212,7 @@ const MainPage = () => {
 
                     <div className="d-flex justify-content-center">
                       <Form.Control
+                        ref={fileInputRef}
                         type="file"
                         accept=".pdf,.doc,.docx,.txt"
                         onChange={handleFileChange}
