@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: app
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+
+  liquibase:
+    change-log: "classpath:db/changelog/changelog.yaml"
+    enabled: true
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    driver-class-name: org.postgresql.Driver
+    liquibase-schema: public
+  threads:
+    virtual:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 100MB
+  jpa:
+    show-sql: true
+
+
+s3:
+  endpoint: ${S3_BASE_URL}
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+  bucket-name: ${S3_BUCKET_NAME}
+  region: ${S3_REGION}
+  force-path: ${S3_FORCE_PATH}
+
+jwt:
+  secret-base64: ${SECRET_BASE64} # 32+ байт в Base64
+  access-ttl-min: 15
+  issuer: ${spring.application.name}
+
+logging:
+  level:
+    liquibase: DEBUG
