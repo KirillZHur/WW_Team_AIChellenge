@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+python-multipart
+
+torch
+transformers
+tokenizers
+huggingface-hub
+
+pdfplumber
+
+pydantic
+pydantic-settings
+
+python-dotenv
+requests
+openai
