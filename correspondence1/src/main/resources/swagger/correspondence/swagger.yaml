@@ -1,0 +1,209 @@
+openapi: 3.1.0
+info:
+  title: IT Solutions Shop
+  description: API для маркетплейса IT-решений
+  version: 1.0.0
+servers:
+  - url: 'https://localhost:8080'
+paths:
+  /api/auth/v1/registration:
+    post:
+      tags:
+        - Authentication
+      operationId: registerUser
+      summary: Регистрация пользователя
+      description: Регистрация нового пользователя в системе
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationRequest'
+      responses:
+        '200':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервиса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/v1/login:
+    post:
+      tags:
+        - Authentication
+      operationId: authUser
+      summary: Авторизация пользователя
+      description: Выдача JWT + refresh токена по связке логин/пароль
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неверный логин и/или пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/v1/me:
+    get:
+      tags:
+        - Authentication
+      operationId: getMe
+      summary: Получение текущего пользователя
+      description: Возвращает профиль текущего пользователя
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Профиль текущего пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: JWT токен отсутствует или некорректный
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/v1/logout:
+    post:
+      tags:
+        - Authentication
+      operationId: logout
+      summary: Инвалидировать refresh токены
+      description: Инвалидирует все выданные для пользователя refresh njrtys
+      responses:
+        '200':
+          description: Refresh токены успешно отозваны
+        '401':
+          description: JWT токен отсутствует или некорректный
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    UserRegistrationRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+        - role_ids
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 6
+          maxLength: 256
+          description: Пароль пользователя (минимум 6 символов)
+          example: "password123"
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          description: Имя пользователя
+          example: "Иван"
+        role_ids:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+    LoginRequest:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+          description: Email пользователя
+          minLength: 1
+        password:
+          type: string
+          description: Пароль пользователя
+          minLength: 1
+    TokenPair:
+      type: object
+      required:
+        - access_token
+        - access_token_expires_at
+        - refresh_token
+      properties:
+        access_token:
+          type: string
+          description: Access JWT (Bearer)
+        access_token_expires_at:
+          type: string
+          format: date-time
+          description: Время истечение access токена
+          example: "2021-01-30T08:30:00Z"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID пользователя
+          example: "db8ecbb8-e447-43d1-8a37-ff1ff49e26fd"
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+          example: "user@example.com"
+        name:
+          type: string
+          description: Имя пользователя
+          example: "Иван"
+        role_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: "Ошибка валидации данных"
+        timestamp:
+          type: string
+          format: date-time
+          description: Время возникновения ошибки
+          example: "2024-01-01T12:00:00Z"

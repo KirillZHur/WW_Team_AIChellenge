@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001
+      author: Dazz1ee
+      changes:
+        - sqlFile:
+            relativeToChangelogFile: true
+            path: scripts/001_user_registration/create_user_and_role_tables.sql
+            splitStatements: true
+            stripComments: true
+  - changeSet:
+      id: 002
+      author: Dazz1ee
+      changes:
+        - sqlFile:
+            relativeToChangelogFile: true
+            path: scripts/002_letters_drafts/create_tables.sql
+            splitStatements: true
+            stripComments: true
